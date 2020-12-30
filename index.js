@@ -3,7 +3,7 @@ const {Client} = require('camunda-external-task-client-js');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-
+var cors = require('cors');
 
 var camundaEngineUrl = 'http://localhost:8081/rest/'; // default if not overwritten by ENV variable
 var targetPort = '8090'; //default if not overwritten by ENV
@@ -91,6 +91,7 @@ deployProcess();
 
 // Webserver to provide REST API to start workflow instances
 var app = express();
+app.use(cors())
 app.use(express.json());
 
 app.post('/hello', function (req, res) {
