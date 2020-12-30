@@ -10,13 +10,13 @@ const ComposeComponent = () => {
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const handleSave = () => {
-        fetch('http://localhost:8090/hello', {
+        fetch('http://localhost:8090/article', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                "someText": "Hello from the other side"
+                "article": "This article is about the political riots going on"
             })
         }).then(
             res => console.log(res)

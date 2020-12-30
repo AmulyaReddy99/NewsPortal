@@ -32,7 +32,7 @@ client.subscribe('sysout', async function({ task, taskService }) {
 
 // Deployment of Workflow Definition during startup (duplicates are NOT deployed)
 function deployProcess() {
-    filename = 'sysout.bpmn';
+    filename = 'news_article.bpmn';
     filepath = path.join(__dirname, filename);
     console.log(filepath);
 
@@ -44,7 +44,7 @@ function deployProcess() {
               "Content-Type": "multipart/form-data"
           },
           formData : {
-              'deployment-name': 'sysout',
+              'deployment-name': 'news_article',
               'enable-duplicate-filtering': 'true',
               'deploy-changed-only': 'true',
               'scripttest.bpmn': {
@@ -62,16 +62,18 @@ function deployProcess() {
     });
 }
 
+let details;
+
 // Start workflow instance: https://docs.camunda.org/manual/latest/reference/rest/process-definition/post-start-process-instance/
-function startProcess(someText) {
+function startProcess(article) {
   request(
     {
       method: "POST", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
-      uri: camundaEngineUrl + 'engine/default/process-definition/key/'+'sysout'+'/start',
+      uri: camundaEngineUrl + 'engine/default/process-definition/key/'+'NewsArticleFlow'+'/start',
       json: {
         'variables': {
-          'someText' : {
-              'value' : someText,
+          'article' : {
+              'value' : article,
               'type': 'String'
           },
         }      
@@ -81,6 +83,7 @@ function startProcess(someText) {
           console.log(err);
           throw err;
         }
+        details = body;
         console.log('Process instance started: ' + body);
   });
 }
@@ -94,9 +97,9 @@ var app = express();
 app.use(cors())
 app.use(express.json());
 
-app.post('/hello', function (req, res) {
-  startProcess(req.body.someText);  
-  res.send('Hello initiated with text: ' + req.body.someText);
+app.post('/article', function (req, res) {
+  startProcess(req.body.article);  
+  res.send('Article saved!'+details);
 })
 
 var server = app.listen(targetPort, function () {
