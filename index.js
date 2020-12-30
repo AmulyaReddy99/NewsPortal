@@ -5,7 +5,7 @@ const path = require('path');
 const express = require('express');
 
 
-var camundaEngineUrl = 'http://localhost:8080/rest/'; // default if not overwritten by ENV variable
+var camundaEngineUrl = 'http://localhost:8081/rest/'; // default if not overwritten by ENV variable
 var targetPort = '8090'; //default if not overwritten by ENV
 if (process.env.CAMUNDA_URL) {
   camundaEngineUrl = process.env.CAMUNDA_URL;
