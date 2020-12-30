@@ -1,0 +1,25 @@
+.content {
+    height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    .login {
+        background-color: #282c34;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10vh;
+        border-radius: 10px;
+        input {
+            background-color: #414141;
+            padding: 10px;
+            margin: 10pt;
+            border-radius: 5pt;
+            width: 100%;
+            border: none;
+            color: white;
+        }
+    }
+}

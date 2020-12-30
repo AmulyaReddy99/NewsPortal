@@ -1,0 +1,23 @@
+textarea {
+    width: 100%;
+    height: 70vh;
+}
+
+
+.compose {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    border-width: 2px;
+    .article-title-input {
+        background-color: #414141;
+        padding: 10px;
+        margin: 10px;
+        width: 100%;
+        border-radius: 5pt;
+        border: none;
+        color: white;
+    }
+}
