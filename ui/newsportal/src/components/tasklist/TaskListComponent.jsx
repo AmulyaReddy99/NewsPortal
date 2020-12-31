@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { lighten, makeStyles } from '@material-ui/core/styles';
@@ -20,13 +21,13 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import { Button } from 'react-bootstrap';
 
-function createData(articleName, composer, approvedBy, approvalDate, lastUpdatedDate) {
-  return { articleName, composer, approvedBy, approvalDate, lastUpdatedDate };
+function createData(articleName, composer, approvedBy, approvalDate, lastUpdatedDate, action) {
+  return { articleName, composer, approvedBy, approvalDate, lastUpdatedDate, action };
 }
 
 const rows = [
-  createData('articleName', 'composer', 'approvedBy', 'approvalDate', 'lastUpdatedDate'),
-  createData('articleName', 'composer', 'approvedBy', 'approvalDate', 'lastUpdatedDate'),
+  createData('articleName1', 'composer1', 'approvedBy1', 'approvalDate1', 'lastUpdatedDate1', 'action1'),
+  createData('articleName2', 'composer2', 'approvedBy2', 'approvalDate2', 'lastUpdatedDate2', 'action2'),
 ];
 
 function descendingComparator(a, b, orderBy) {
@@ -61,6 +62,7 @@ const headCells = [
   { id: 'approvedBy', numeric: false, disablePadding: false, label: 'Approved By' },
   { id: 'approvalDate', numeric: false, disablePadding: false, label: 'Approved Date' },
   { id: 'lastUpdatedDate', numeric: false, disablePadding: false, label: 'Last Updated Date' },
+  { id: 'action', numeric: false, disablePadding: false, label: 'Action' },
 ];
 
 function EnhancedTableHead(props) {
@@ -152,7 +154,7 @@ const EnhancedTableToolbar = (props) => {
         </Typography>
       ) : (
         <Typography className={classes.title} variant="h6" id="tableTitle" component="div">
-          Nutrition
+          Articles
         </Typography>
       )}
 
@@ -209,6 +211,43 @@ export default function TaskListComponent() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
+  const [show, setShow] = useState(false);
+    const [articleName, setArticleName] = useState("");
+    
+
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
+    
+    const handleSave = () => {
+      fetch('http://localhost:8090/article', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "article": "This article is about the political riots going on"
+        })
+    }).then(
+        res => console.log(res)
+    )
+    setShow(false);
+  }
+  const handleSubmit = () => {
+    // handleSave();
+    fetch('http://localhost:8090/complete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "article": "This article is about the political riots going on"
+        })
+    }).then(
+        res => console.log(res)
+    )
+    setShow(false);
+  }
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -224,24 +263,9 @@ export default function TaskListComponent() {
     setSelected([]);
   };
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
-    }
-
-    setSelected(newSelected);
+  const handleClick = (event, articleName) => {
+    setArticleName(articleName)
+    handleShow()
   };
 
   const handleChangePage = (event, newPage) => {
@@ -287,8 +311,8 @@ export default function TaskListComponent() {
                   return (
                     <TableRow
                       hover
-                      onClick={(event) => handleClick(event, row.name)}
-                      role="checkbox"
+                      // onClick={(event) => handleClick(event, row.name)}
+                      // role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
                       key={row.name}
@@ -300,15 +324,15 @@ export default function TaskListComponent() {
                           inputProps={{ 'aria-labelledby': labelId }}
                         />
                       </TableCell>
-                      <TableCell component="th" id={labelId} scope="row" padding="none">
+                      {/* <TableCell component="th" id={labelId} scope="row" padding="none">
                         {row.name}
-                      </TableCell>
-                      <TableCell align="right">{row.articleName}</TableCell>
-                      <TableCell align="right">{row.composer}</TableCell>
-                      <TableCell align="right">{row.approvedBy}</TableCell>
-                      <TableCell align="right">{row.approvalDate}</TableCell>
-                      <TableCell align="right">{row.lastUpdatedDate}</TableCell>
-                      <TableCell align="right"><Button>Edit</Button></TableCell>
+                      </TableCell> */}
+                      <TableCell>{row.articleName}</TableCell>
+                      <TableCell>{row.composer}</TableCell>
+                      <TableCell>{row.approvedBy}</TableCell>
+                      <TableCell>{row.approvalDate}</TableCell>
+                      <TableCell>{row.lastUpdatedDate}</TableCell>
+                      <TableCell><Button onClick={(event) => handleClick(event, row.articleName)}>Edit</Button></TableCell>
                     </TableRow>
                   );
                 })}
@@ -330,6 +354,27 @@ export default function TaskListComponent() {
           onChangeRowsPerPage={handleChangeRowsPerPage}
         />
       </Paper>
+
+
+      <Modal show={show} onHide={handleClose}>
+                <Modal.Header closeButton>
+                <Modal.Title>{articleName!==""? articleName: "Article Title"}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <textarea/>
+                </Modal.Body>
+                <Modal.Footer>
+                <Button variant="secondary" onClick={handleClose}>
+                    Close
+                </Button>
+                <Button variant="primary" onClick={handleSave}>
+                    Save Changes
+                </Button>
+                <Button variant="primary" onClick={handleSubmit}>
+                    Submit Article
+                </Button>
+                </Modal.Footer>
+            </Modal>
     </div>
   );
 }

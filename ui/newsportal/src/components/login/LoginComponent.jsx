@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import { Button } from 'react-bootstrap'
 import './LoginComponent.scss'
 
-const LoginComponent = () => {
+const LoginComponent = (props) => {
 
     localStorage.setItem("camunda-roles",
         JSON.stringify({
@@ -34,9 +34,34 @@ const LoginComponent = () => {
         for (const [key, value] of Object.entries(camunda_roles.users)) {
             if (value === username){
                 console.log("logged in as ",key);
-                localStorage.setItem("role","composer")
+                localStorage.setItem("role",key)
             }
         }
+        if (localStorage.getItem("role") === "composer"){
+            props.history.push({
+                pathname: '/compose',
+                role: "composer"
+            })
+        }
+        if (localStorage.getItem("role") === "editor1"){
+            props.history.push({
+                pathname: '/tasklist',
+                role: "editor1"
+            })
+        }
+        if (localStorage.getItem("role") === "editor2"){
+            props.history.push({
+                pathname: '/tasklist',
+                role: "editor2"
+            })
+        }
+        if (localStorage.getItem("role") === "editor3"){
+            props.history.push({
+                pathname: '/tasklist',
+                role: "editor3"
+            })
+        }
+        
     }
 
     const logout = () => {

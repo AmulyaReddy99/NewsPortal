@@ -6,6 +6,7 @@ import './ComposeComponent.scss'
 const ComposeComponent = () => {
 
     const [show, setShow] = useState(false);
+    const [title, setTitle] = useState("");
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -39,16 +40,18 @@ const ComposeComponent = () => {
         setShow(false);
     }
 
+    const onTitleChange = (e) => { setTitle(e.target.value) }
+
     return (  
         <>
             <div className="compose">
-                <input className="article-title-input" placeholder="Article Title"/>
+                <input className="article-title-input" onChange={(e)=>onTitleChange(e)} placeholder="Article Title"/>
                 <Button variant="primary" onClick={handleShow}>Compose</Button>
             </div>
 
             <Modal show={show} onHide={handleClose}>
                 <Modal.Header closeButton>
-                <Modal.Title>Article Title</Modal.Title>
+                <Modal.Title>{title!==""? title: "Article Title"}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <textarea/>
