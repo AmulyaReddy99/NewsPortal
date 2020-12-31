@@ -35,6 +35,7 @@ const LoginComponent = (props) => {
             if (value === username){
                 console.log("logged in as ",key);
                 localStorage.setItem("role",key)
+                localStorage.setItem("username",username)
             }
         }
         if (localStorage.getItem("role") === "composer"){
@@ -82,6 +83,7 @@ const LoginComponent = (props) => {
             })
         )
         localStorage.removeItem("role");
+        localStorage.removeItem("username")
     }
 
     return (  

@@ -7,17 +7,36 @@ const ComposeComponent = () => {
 
     const [show, setShow] = useState(false);
     const [title, setTitle] = useState("");
+    const [article_text, setArticleText] = useState("");
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const handleSave = () => {
+        fetch('http://localhost:8090/article/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                    article : {
+                    articleName: title,
+                    composer: localStorage.getItem("username"),
+                    approvedDate: new Date().toString(),
+                    approvedBy: localStorage.getItem("username"),
+                    lastUpdatedDate: new Date().toString()
+                }
+            })
+        }).then(
+            res => console.log(res)
+        )
+    
         fetch('http://localhost:8090/article', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                "article": "This article is about the political riots going on"
+                "article": article_text
             })
         }).then(
             res => console.log(res)
@@ -41,6 +60,7 @@ const ComposeComponent = () => {
     }
 
     const onTitleChange = (e) => { setTitle(e.target.value) }
+    const onArticleChange = (e) => { setArticleText(e.target.value) }
 
     return (  
         <>
@@ -54,7 +74,7 @@ const ComposeComponent = () => {
                 <Modal.Title>{title!==""? title: "Article Title"}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <textarea/>
+                    <textarea onChange={(e)=>onArticleChange(e)}/>
                 </Modal.Body>
                 <Modal.Footer>
                 <Button variant="secondary" onClick={handleClose}>
