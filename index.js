@@ -4,7 +4,22 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
-const db = require('./config/mongoConfig')
+const Articles = require('./models/Articles');
+const articles = require('./models/Articles');
+
+const article = new Articles({
+  articleName: "Article Name",
+  composer: "Composer",
+  approvedDate: "Approved Date",
+  approvedBy: "Approved By",
+  lastUpdatedDate: "Last Updated Date"
+})
+
+console.log(article)
+
+article.save((err)=>{
+  if(err) console.log(err)
+})
 
 var camundaEngineUrl = 'http://localhost:8081/rest/'; // default if not overwritten by ENV variable
 var targetPort = '8090'; //default if not overwritten by ENV
@@ -115,7 +130,7 @@ function complete(taskId, article) {
 }
 
 // Auto-Deploy on startup
-deployProcess();
+// deployProcess();
 
 
 // Webserver to provide REST API to start workflow instances
