@@ -1,15 +1,71 @@
-import React from 'react'
+import React, { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { Button } from 'react-bootstrap'
 import './LoginComponent.scss'
 
 const LoginComponent = () => {
+
+    localStorage.setItem("camunda-roles",
+        JSON.stringify({
+            roles: {
+                composer : false,
+                editor1: false,
+                editor2: false,
+                editor3: false
+            },
+            users: {
+                composer: "composerUser",
+                editor1: "editor1User",
+                editor2: "editor2User",
+                editor3: "editor3User"
+            }
+        })
+    )
+
+    const [username, setUsername] = useState("")
+    const [password, setPassword] = useState("")
+
+    const onUsernameChange = (e) => { setUsername(e.target.value) }
+    const onPasswordChange = (e) => { setPassword(e.target.value) }
+
+    const login = () => {
+        let camunda_roles = localStorage.getItem("camunda-roles")
+        camunda_roles = JSON.parse(camunda_roles)
+        for (const [key, value] of Object.entries(camunda_roles.users)) {
+            if (value === username){
+                console.log("logged in as ",key);
+                localStorage.setItem("role","composer")
+            }
+        }
+    }
+
+    const logout = () => {
+        localStorage.setItem("camunda-roles",
+            JSON.stringify({
+                roles: {
+                    composer : false,
+                    editor1: false,
+                    editor2: false,
+                    editor3: false
+                },
+                users: {
+                    composer: "composerUser",
+                    editor1: "editor1User",
+                    editor2: "editor2User",
+                    editor3: "editor3User"
+                }
+            })
+        )
+        localStorage.removeItem("role");
+    }
+
     return (  
-        <div class="content">
-            <div class="login">
-                <input type="text" placeholder="Username"/>
-                <input type="password" placeholder="Password"/>
-                <Button variant="primary" type="submit">Login</Button>
+        <div className="content">
+            <div className="login">
+                <input type="text" onChange={(e)=>onUsernameChange(e)} placeholder="Username"/>
+                <input type="password" onChange={(e)=>onPasswordChange(e)} placeholder="Password"/>
+                <Button variant="primary" onClick={(e)=>login(e)} type="submit">Login</Button>
+                <Button variant="primary" onClick={(e)=>logout(e)} type="submit">Logout</Button>
             </div>
         </div>
     );

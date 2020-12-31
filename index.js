@@ -63,6 +63,7 @@ function deployProcess() {
 }
 
 let details;
+let taskId;
 
 // Start workflow instance: https://docs.camunda.org/manual/latest/reference/rest/process-definition/post-start-process-instance/
 function startProcess(article) {
@@ -84,7 +85,31 @@ function startProcess(article) {
           throw err;
         }
         details = body;
-        console.log('Process instance started: ' + body);
+        taskId = body.id;
+        console.log(body);
+  });
+}
+
+function complete(taskId, article) {
+  request(
+    {
+      method: "POST", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
+      uri: camundaEngineUrl + 'engine/default/task/'+taskId+'/complete',
+      json: {
+        'variables': {
+          'article' : {
+              'value' : article,
+              'type': 'String'
+          },
+        }      
+      }
+    }, function (err, res, body) {
+        if (err) {
+          console.log(err);
+          throw err;
+        }
+        details = body;
+        console.log(body);
   });
 }
 
@@ -100,6 +125,11 @@ app.use(express.json());
 app.post('/article', function (req, res) {
   startProcess(req.body.article);  
   res.send('Article saved!'+details);
+})
+
+app.post('/complete', function (req, res) {
+  complete(taskId, req.body.article);  
+  res.send('Tassk completed!');
 })
 
 var server = app.listen(targetPort, function () {

@@ -24,8 +24,18 @@ const ComposeComponent = () => {
         setShow(false);
     }
     const handleSubmit = () => {
-        handleSave();
-        // completeTask();
+        // handleSave();
+        fetch('http://localhost:8090/complete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                "article": "This article is about the political riots going on"
+            })
+        }).then(
+            res => console.log(res)
+        )
         setShow(false);
     }
 
