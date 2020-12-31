@@ -3,7 +3,8 @@ const {Client} = require('camunda-external-task-client-js');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-var cors = require('cors');
+const cors = require('cors');
+const db = require('./config/mongoConfig')
 
 var camundaEngineUrl = 'http://localhost:8081/rest/'; // default if not overwritten by ENV variable
 var targetPort = '8090'; //default if not overwritten by ENV
