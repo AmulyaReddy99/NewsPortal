@@ -256,7 +256,7 @@ export default function TaskListComponent() {
     setShow(false);
   }
   
-    const handleSubmit = () => {
+    const handleSubmit = (e, row, approved) => {
       // handleSave();
       fetch('http://localhost:8090/complete', {
         method: 'POST',
@@ -265,7 +265,8 @@ export default function TaskListComponent() {
         },
         body: JSON.stringify({
             "editor": localStorage.getItem("role"),
-            "approved": "approved"
+            "processInstanceId": row.processInstanceId,
+            "approved": approved
         })
     }).then(
         res => console.log(res)
@@ -356,6 +357,8 @@ export default function TaskListComponent() {
                       <TableCell>{row.approvalDate}</TableCell>
                       <TableCell>{row.lastUpdatedDate}</TableCell>
                       <TableCell><Button onClick={(event) => handleClick(event, row.articleName)}>Edit</Button></TableCell>
+                      <TableCell><Button className="btn btn-success" onClick={(event) => handleSubmit(event, row.processInstanceId, "approved")}>Approve</Button></TableCell>
+                      {localStorage.getItem('role')==="editor1" ? <></> : <TableCell><Button className="btn btn-danger" onClick={(event) => handleSubmit(event, row.processInstanceId, "rejected")}>Reject</Button></TableCell>}
                     </TableRow>
                   );
                 })}
@@ -392,9 +395,6 @@ export default function TaskListComponent() {
                 </Button>
                 <Button variant="primary" onClick={handleSave}>
                     Save Changes
-                </Button>
-                <Button variant="primary" onClick={handleSubmit}>
-                    Submit Article
                 </Button>
                 </Modal.Footer>
             </Modal>

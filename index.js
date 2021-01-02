@@ -96,7 +96,7 @@ function startProcess(article) {
         throw err;
       }
       console.log(body);
-      processInstanceId = body.definitionId
+      processInstanceId = body.id
       return body;
   });
 }
@@ -111,10 +111,7 @@ function getActiveTask(editor, processInstanceId, approved){
           console.log(err);
           throw err;
         }
-        console.log("ACTIVE TASK")
-        console.log(body);
         taskId = JSON.parse(body)[0].id
-        console.log("TASKID",taskId)
         complete(taskId, approved);  
       });
 }
@@ -151,7 +148,6 @@ app.use(cors())
 app.use(express.json());
 
 app.post('/article', function (req, res) {
-  // details = startProcess(req.body.article);  
   request(
     {
       method: "POST", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
@@ -182,17 +178,28 @@ app.post('/article', function (req, res) {
         throw err;
       }
       console.log(body);
-      processInstanceId = body.definitionId
+      processInstanceId = body.id
       res.send(body);
   });
-  // console.log(details)
-  // res.send(details);
 })
 
 app.post('/complete', function (req, res) {
-  console.log(req.body.editor)
-  getActiveTask(req.body.editor, req.body.approved, req.body.processInstanceId)
-  res.send('Task completed!');
+  console.log(req.body.processInstanceId)
+  request(
+    {
+      method: "GET", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
+      uri: camundaEngineUrl + 'engine/default/task?active=true&assignee='+req.body.editor,
+    }, function (err, res, body) {
+        if (err) {
+          console.log(err);
+          throw err;
+        }
+        console.log("ACTIVE TASK")
+        console.log(body);
+        taskId = JSON.parse(body)[0].id
+        console.log("TASKID",taskId)
+        complete(taskId, req.body.approved);  
+      });
 })
 
 app.post('/article/add', function(req, res) {
@@ -216,7 +223,7 @@ app.post('/articles', function(req, res){
         throw err;
       }
       for (b of JSON.parse(body)){
-        processInstanceMap.processInstanceId = b.processDefinitionId
+        processInstanceMap.processInstanceId = b.processInstanceId
       }
       console.log(processInstanceMap)
       if (Object.keys(processInstanceMap).length != 0) {

@@ -37,7 +37,7 @@ const ComposeComponent = () => {
                             approvedBy: localStorage.getItem("username"),
                             lastUpdatedDate: new Date().toString(),
                             articleText: article_text,
-                            processInstanceId: result.definitionId
+                            processInstanceId: result.id
                         }
                     })
                 })
