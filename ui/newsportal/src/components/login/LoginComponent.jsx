@@ -92,7 +92,7 @@ const LoginComponent = (props) => {
                 <input type="text" onChange={(e)=>onUsernameChange(e)} placeholder="Username"/>
                 <input type="password" onChange={(e)=>onPasswordChange(e)} placeholder="Password"/>
                 <Button variant="primary" onClick={(e)=>login(e)} type="submit">Login</Button>
-                <Button variant="primary" onClick={(e)=>logout(e)} type="submit">Logout</Button>
+                {/* <Button variant="primary" onClick={(e)=>logout(e)} type="submit">Logout</Button> */}
             </div>
         </div>
     );

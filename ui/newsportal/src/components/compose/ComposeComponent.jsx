@@ -12,24 +12,6 @@ const ComposeComponent = () => {
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const handleSave = () => {
-        fetch('http://localhost:8090/article/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                    article : {
-                    articleName: title,
-                    composer: localStorage.getItem("username"),
-                    approvedDate: new Date().toString(),
-                    approvedBy: localStorage.getItem("username"),
-                    lastUpdatedDate: new Date().toString()
-                }
-            })
-        }).then(
-            res => console.log(res)
-        )
-    
         fetch('http://localhost:8090/article', {
             method: 'POST',
             headers: {
@@ -38,23 +20,28 @@ const ComposeComponent = () => {
             body: JSON.stringify({
                 "article": article_text
             })
-        }).then(
-            res => console.log(res)
-        )
-        setShow(false);
-    }
-    const handleSubmit = () => {
-        // handleSave();
-        fetch('http://localhost:8090/complete', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                "article": "This article is about the political riots going on"
-            })
-        }).then(
-            res => console.log(res)
+        }).then(response => response.json())
+        .then(
+            result => {
+                console.log(result.body)
+                fetch('http://localhost:8090/article/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                            article : {
+                            articleName: title,
+                            composer: localStorage.getItem("username"),
+                            approvedDate: new Date().toString(),
+                            approvedBy: localStorage.getItem("username"),
+                            lastUpdatedDate: new Date().toString(),
+                            articleText: article_text,
+                            processInstanceId: result.definitionId
+                        }
+                    })
+                })
+            }
         )
         setShow(false);
     }
@@ -82,9 +69,6 @@ const ComposeComponent = () => {
                 </Button>
                 <Button variant="primary" onClick={handleSave}>
                     Save Changes
-                </Button>
-                <Button variant="primary" onClick={handleSubmit}>
-                    Submit Article
                 </Button>
                 </Modal.Footer>
             </Modal>

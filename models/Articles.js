@@ -5,7 +5,9 @@ const ArticlesSchema = new db.Schema({
     composer: String,
     approvedDate: String,
     approvedBy: String,
-    lastUpdatedDate: String
+    lastUpdatedDate: String,
+    articleText: String,
+    processInstanceId: String
 })
 
 const articles = db.model('Articles',ArticlesSchema)

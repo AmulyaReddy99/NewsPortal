@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0t57dyo" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.4.0">
+  <bpmn:process id="NewsReviewFlow" name="NewsReviewFlow" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1n4wkfr</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1n4wkfr" sourceRef="StartEvent_1" targetRef="Activity_12rkyzj" />
+    <bpmn:scriptTask id="Activity_12rkyzj" name="User Assignment" scriptFormat="JavaScript">
+      <bpmn:incoming>Flow_0k0qlbv</bpmn:incoming>
+      <bpmn:incoming>Flow_1n4wkfr</bpmn:incoming>
+      <bpmn:outgoing>Flow_0g189vu</bpmn:outgoing>
+      <bpmn:script>var users = execution.getVariable("users");
+var userList = users.split(',');
+var userIndex = execution.getVariable("userIndex");
+var selectedUser = userList[userIndex];
+execution.setVariable("selectedUser", selectedUser);</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_0g189vu" sourceRef="Activity_12rkyzj" targetRef="Activity_0wwnehp" />
+    <bpmn:userTask id="Activity_0wwnehp" name="Editor Review" camunda:assignee="${selectedUser}">
+      <bpmn:incoming>Flow_0g189vu</bpmn:incoming>
+      <bpmn:outgoing>Flow_024cf6g</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_0ggrwdb">
+      <bpmn:incoming>Flow_024cf6g</bpmn:incoming>
+      <bpmn:outgoing>Flow_00f0dja</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0qup548</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_024cf6g" sourceRef="Activity_0wwnehp" targetRef="Gateway_0ggrwdb" />
+    <bpmn:sequenceFlow id="Flow_00f0dja" sourceRef="Gateway_0ggrwdb" targetRef="Activity_0icsun3">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="JavaScript">execution.getVariable("reviewStatus")=="approved" &amp;&amp; execution.getVariable("userIndex")==execution.getVariable("noOfUsers")-1</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0qup548" sourceRef="Gateway_0ggrwdb" targetRef="Activity_0linz6p">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="JavaScript">execution.getVariable("reviewStatus")=="rejected" || execution.getVariable("userIndex")!=execution.getVariable("noOfUsers")-1</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:scriptTask id="Activity_0linz6p" name="Updating userIndex" scriptFormat="JavaScript">
+      <bpmn:incoming>Flow_0qup548</bpmn:incoming>
+      <bpmn:outgoing>Flow_0k0qlbv</bpmn:outgoing>
+      <bpmn:script>var userIndex = execution.getVariable("userIndex");
+var reviewStatus = execution.getVariable("reviewStatus");
+if (reviewStatus=="rejected"){
+userIndex--;
+} else {
+userIndex++;
+}
+execution.setVariable("userIndex", userIndex);</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_0k0qlbv" sourceRef="Activity_0linz6p" targetRef="Activity_12rkyzj" />
+    <bpmn:userTask id="Activity_0icsun3" name="Review Completed">
+      <bpmn:incoming>Flow_00f0dja</bpmn:incoming>
+      <bpmn:outgoing>Flow_10kxu6m</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_0wbf3ns">
+      <bpmn:incoming>Flow_10kxu6m</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_10kxu6m" sourceRef="Activity_0icsun3" targetRef="Event_0wbf3ns" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="NewsReviewFlow">
+      <bpmndi:BPMNEdge id="Flow_10kxu6m_di" bpmnElement="Flow_10kxu6m">
+        <di:waypoint x="780" y="117" />
+        <di:waypoint x="852" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0k0qlbv_di" bpmnElement="Flow_0k0qlbv">
+        <di:waypoint x="540" y="250" />
+        <di:waypoint x="290" y="250" />
+        <di:waypoint x="290" y="157" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0qup548_di" bpmnElement="Flow_0qup548">
+        <di:waypoint x="590" y="142" />
+        <di:waypoint x="590" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_00f0dja_di" bpmnElement="Flow_00f0dja">
+        <di:waypoint x="615" y="117" />
+        <di:waypoint x="680" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_024cf6g_di" bpmnElement="Flow_024cf6g">
+        <di:waypoint x="500" y="117" />
+        <di:waypoint x="565" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0g189vu_di" bpmnElement="Flow_0g189vu">
+        <di:waypoint x="340" y="117" />
+        <di:waypoint x="400" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1n4wkfr_di" bpmnElement="Flow_1n4wkfr">
+        <di:waypoint x="188" y="117" />
+        <di:waypoint x="240" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="152" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_190k8m3_di" bpmnElement="Activity_12rkyzj">
+        <dc:Bounds x="240" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1eh28oe_di" bpmnElement="Activity_0wwnehp">
+        <dc:Bounds x="400" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0ggrwdb_di" bpmnElement="Gateway_0ggrwdb" isMarkerVisible="true">
+        <dc:Bounds x="565" y="92" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1n5q0ym_di" bpmnElement="Activity_0linz6p">
+        <dc:Bounds x="540" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_094t72z_di" bpmnElement="Activity_0icsun3">
+        <dc:Bounds x="680" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0wbf3ns_di" bpmnElement="Event_0wbf3ns">
+        <dc:Bounds x="852" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

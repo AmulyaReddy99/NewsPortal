@@ -5,6 +5,7 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const Articles = require('./models/Articles');
+const articles = require('./models/Articles');
 
 var camundaEngineUrl = 'http://localhost:8081/rest/'; // default if not overwritten by ENV variable
 var targetPort = '8090'; //default if not overwritten by ENV
@@ -33,7 +34,7 @@ client.subscribe('sysout', async function({ task, taskService }) {
 
 // Deployment of Workflow Definition during startup (duplicates are NOT deployed)
 function deployProcess() {
-    filename = 'news_article.bpmn';
+    filename = 'news_review.bpmn';
     filepath = path.join(__dirname, filename);
     console.log(filepath);
 
@@ -45,7 +46,7 @@ function deployProcess() {
               "Content-Type": "multipart/form-data"
           },
           formData : {
-              'deployment-name': 'news_article',
+              'deployment-name': 'news_review',
               'enable-duplicate-filtering': 'true',
               'deploy-changed-only': 'true',
               'scripttest.bpmn': {
@@ -63,53 +64,79 @@ function deployProcess() {
     });
 }
 
-let details;
-let taskId;
-
 // Start workflow instance: https://docs.camunda.org/manual/latest/reference/rest/process-definition/post-start-process-instance/
 function startProcess(article) {
   request(
     {
       method: "POST", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
-      uri: camundaEngineUrl + 'engine/default/process-definition/key/'+'NewsArticleFlow'+'/start',
+      uri: camundaEngineUrl + 'engine/default/process-definition/key/'+'NewsReviewFlow'+'/start',
       json: {
-        'variables': {
-          'article' : {
-              'value' : article,
-              'type': 'String'
+        "variables": {
+          "users": {
+          "value": "editor1,editor2,editor3",
+            "type": "String"
           },
-        }      
+          "noOfUsers": {
+            "value": 3,
+            "type": "Integer"
+          },
+          "userIndex": {
+            "value": 0,
+            "type": "Integer"
+          },
+          "article": {
+            "value": article,
+            "type": "String"
+          } 
       }
+    }
+  }, function (err, res, body) {
+      if (err) {
+        console.log(err);
+        throw err;
+      }
+      console.log(body);
+      processInstanceId = body.definitionId
+      return body;
+  });
+}
+
+function getActiveTask(editor, processInstanceId, approved){
+  request(
+    {
+      method: "GET", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
+      uri: camundaEngineUrl + 'engine/default/task?active=true&assignee='+editor+'&processInstanceId='+processInstanceId,
     }, function (err, res, body) {
         if (err) {
           console.log(err);
           throw err;
         }
-        details = body;
-        taskId = body.id;
+        console.log("ACTIVE TASK")
         console.log(body);
-  });
+        taskId = JSON.parse(body)[0].id
+        console.log("TASKID",taskId)
+        complete(taskId, approved);  
+      });
 }
 
-function complete(taskId, article) {
+function complete(taskId, approved) {
   request(
     {
       method: "POST", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
       uri: camundaEngineUrl + 'engine/default/task/'+taskId+'/complete',
       json: {
-        'variables': {
-          'article' : {
-              'value' : article,
-              'type': 'String'
-          },
-        }      
+        "variables": {
+            "reviewStatus" : {
+                "value" : approved,
+                "type": "String"
+            }
+          }
       }
     }, function (err, res, body) {
         if (err) {
           console.log(err);
           throw err;
         }
-        details = body;
         console.log(body);
   });
 }
@@ -124,37 +151,83 @@ app.use(cors())
 app.use(express.json());
 
 app.post('/article', function (req, res) {
-  startProcess(req.body.article);  
-  res.send('Article saved!'+details);
+  // details = startProcess(req.body.article);  
+  request(
+    {
+      method: "POST", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
+      uri: camundaEngineUrl + 'engine/default/process-definition/key/'+'NewsReviewFlow'+'/start',
+      json: {
+        "variables": {
+          "users": {
+          "value": "editor1,editor2,editor3",
+            "type": "String"
+          },
+          "noOfUsers": {
+            "value": 3,
+            "type": "Integer"
+          },
+          "userIndex": {
+            "value": 0,
+            "type": "Integer"
+          },
+          "article": {
+            "value": req.body.article,
+            "type": "String"
+          } 
+      }
+    }
+  }, function (err, response, body) {
+      if (err) {
+        console.log(err);
+        throw err;
+      }
+      console.log(body);
+      processInstanceId = body.definitionId
+      res.send(body);
+  });
+  // console.log(details)
+  // res.send(details);
 })
 
 app.post('/complete', function (req, res) {
-  complete(taskId, req.body.article);  
-  res.send('Tassk completed!');
+  console.log(req.body.editor)
+  getActiveTask(req.body.editor, req.body.approved, req.body.processInstanceId)
+  res.send('Task completed!');
 })
 
-
-// const article_ex = new Articles({
-//   articleName: "Article Name",
-//   composer: "Composer",
-//   approvedDate: "Approved Date",
-//   approvedBy: "Approved By",
-//   lastUpdatedDate: "Last Updated Date"
-// })
-
-// article_ = new Articles(article_ex)
-// console.log(article_)
-// article_.save((err)=>{
-//   if(err) console.log(err)
-// })
-
-
 app.post('/article/add', function(req, res) {
+  console.log(req.body.article)
   article_ex = new Articles(req.body.article)
   console.log(article_ex)
   article_ex.save((err)=>{
     if(err) console.log(err)
   })
+})
+
+app.post('/articles', function(req, res){
+  let processInstanceMap = {}
+  request(
+  {
+    method: "GET", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
+    uri: camundaEngineUrl + 'engine/default/task?active=true&assignee='+req.body.editor,
+  }, function (err, response, body) {
+      if (err) {
+        console.log(err);
+        throw err;
+      }
+      for (b of JSON.parse(body)){
+        processInstanceMap.processInstanceId = b.processDefinitionId
+      }
+      console.log(processInstanceMap)
+      if (Object.keys(processInstanceMap).length != 0) {
+        Articles.find(processInstanceMap, function(err, result){
+          res.send(result)
+        })
+      } else {
+        res.send([])
+      }
+    }
+  )
 })
 
 var server = app.listen(targetPort, function () {

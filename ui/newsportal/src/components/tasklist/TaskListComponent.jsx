@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
@@ -21,13 +21,13 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import { Button } from 'react-bootstrap';
 
-function createData(articleName, composer, approvedBy, approvalDate, lastUpdatedDate, action) {
-  return { articleName, composer, approvedBy, approvalDate, lastUpdatedDate, action };
-}
+// function createData(articleName, composer, approvedBy, approvalDate, lastUpdatedDate, action) {
+//   return { articleName, composer, approvedBy, approvalDate, lastUpdatedDate, action };
+// }
 
-const rows = [
-  createData('articleName1', 'composer1', 'approvedBy1', 'approvalDate1', 'lastUpdatedDate1', 'action1'),
-  createData('articleName2', 'composer2', 'approvedBy2', 'approvalDate2', 'lastUpdatedDate2', 'action2'),
+var rows = [
+  // createData('Delhi: 1,336 challans issued on New Year\'s Eve', 'composer', 'editor1', 'Fri Jan 01 2021 19:20:30 GMT+0530', 'Fri Jan 01 2021 19:20:30 GMT+0530', 'Action'),
+  // createData('Why 2021 could be turning point for tackling climate change', 'composer', 'editor1', 'Thur 31 2020 18:12:10 GMT+0530', 'Thur 31 2020 18:12:10 GMT+0530', 'Action')
 ];
 
 function descendingComparator(a, b, orderBy) {
@@ -212,8 +212,31 @@ export default function TaskListComponent() {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const [show, setShow] = useState(false);
-    const [articleName, setArticleName] = useState("");
-    
+  const [articleName, setArticleName] = useState("");
+
+  const [fetchedRows, setRows] = useState([]); 
+  const [emptyRows, setEmptyRows] = useState(0)
+
+  useEffect(() => {
+    fetch('http://localhost:8090/articles', {
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "editor": localStorage.getItem('role')
+      })
+    }).then(response => response.json())
+    .then(
+      result => {
+        console.log(result)
+        setRows(result)
+        rows = fetchedRows
+        setEmptyRows(rowsPerPage - Math.min(rowsPerPage, result.length - page * rowsPerPage))
+      }
+    )
+    return () => {}
+  },[])
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -232,15 +255,17 @@ export default function TaskListComponent() {
     )
     setShow(false);
   }
-  const handleSubmit = () => {
-    // handleSave();
-    fetch('http://localhost:8090/complete', {
+  
+    const handleSubmit = () => {
+      // handleSave();
+      fetch('http://localhost:8090/complete', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            "article": "This article is about the political riots going on"
+            "editor": localStorage.getItem("role"),
+            "approved": "approved"
         })
     }).then(
         res => console.log(res)
@@ -256,7 +281,7 @@ export default function TaskListComponent() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = rows.map((n) => n.name);
+      const newSelecteds = fetchedRows.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -279,8 +304,6 @@ export default function TaskListComponent() {
 
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
-  const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
-
   return (
     <div className={classes.root}>
       <Paper className={classes.paper}>
@@ -299,10 +322,10 @@ export default function TaskListComponent() {
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={rows.length}
+              rowCount={fetchedRows.length}
             />
             <TableBody>
-              {stableSort(rows, getComparator(order, orderBy))
+              {stableSort(fetchedRows, getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
@@ -347,7 +370,7 @@ export default function TaskListComponent() {
         <TablePagination
           rowsPerPageOptions={[5, 10]}
           component="div"
-          count={rows.length}
+          count={fetchedRows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onChangePage={handleChangePage}
