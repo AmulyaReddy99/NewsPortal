@@ -211,6 +211,13 @@ app.post('/article/add', function(req, res) {
   })
 })
 
+app.post('/article/update', function(req, res) {
+  console.log(req.body.id, req.body.articleText)
+  Articles.findOneAndUpdate({ _id: req.body.id }, { $set: { articleText: req.body.articleText } }, function(e,r,b){
+    res.send(b)
+  })
+})
+
 app.post('/articles', function(req, res){
   let processInstanceMap = {}
   request(

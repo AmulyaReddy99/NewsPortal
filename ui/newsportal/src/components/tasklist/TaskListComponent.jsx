@@ -213,6 +213,11 @@ export default function TaskListComponent() {
 
   const [show, setShow] = useState(false);
   const [articleName, setArticleName] = useState("");
+  const [newArticleText, setNewArticleText] = useState("")
+
+  const onArticleTextChange = (e) => {
+    setNewArticleText(e.target.value)
+  }
 
   const [fetchedRows, setRows] = useState([]); 
   const [emptyRows, setEmptyRows] = useState(0)
@@ -241,14 +246,15 @@ export default function TaskListComponent() {
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     
-    const handleSave = () => {
-      fetch('http://localhost:8090/article', {
+    const handleSave = (id, articleText) => {
+      fetch('http://localhost:8090/article/update', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            "article": "This article is about the political riots going on"
+            "articleText": articleText,
+            "id": id
         })
     }).then(
         res => console.log(res)
@@ -357,6 +363,24 @@ export default function TaskListComponent() {
                       <TableCell>{row.approvalDate}</TableCell>
                       <TableCell>{row.lastUpdatedDate}</TableCell>
                       <TableCell><Button onClick={(event) => handleClick(event, row.articleName)}>Edit</Button></TableCell>
+                      
+                      <Modal show={show} onHide={handleClose}>
+                        <Modal.Header closeButton>
+                        <Modal.Title>{articleName!==""? articleName: "Article Title"}</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <textarea onChange={(e)=>onArticleTextChange(e)}>{row.articleText}</textarea> 
+                        </Modal.Body>
+                        <Modal.Footer>
+                        <Button variant="secondary" onClick={handleClose}>
+                            Close
+                        </Button>
+                        <Button variant="primary" onClick={()=>handleSave(row._id,newArticleText)}>
+                            Save Changes
+                        </Button>
+                        </Modal.Footer>
+                      </Modal>
+                      
                       <TableCell><Button className="btn btn-success" onClick={(event) => handleSubmit(event, row.processInstanceId, "approved")}>Approve</Button></TableCell>
                       {localStorage.getItem('role')==="editor1" ? <></> : <TableCell><Button className="btn btn-danger" onClick={(event) => handleSubmit(event, row.processInstanceId, "rejected")}>Reject</Button></TableCell>}
                     </TableRow>
@@ -381,23 +405,6 @@ export default function TaskListComponent() {
         />
       </Paper>
 
-
-      <Modal show={show} onHide={handleClose}>
-                <Modal.Header closeButton>
-                <Modal.Title>{articleName!==""? articleName: "Article Title"}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <textarea/>
-                </Modal.Body>
-                <Modal.Footer>
-                <Button variant="secondary" onClick={handleClose}>
-                    Close
-                </Button>
-                <Button variant="primary" onClick={handleSave}>
-                    Save Changes
-                </Button>
-                </Modal.Footer>
-            </Modal>
     </div>
   );
 }
