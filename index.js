@@ -4,8 +4,27 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const ldap = require('ldapjs');
 const Articles = require('./models/Articles');
 const articles = require('./models/Articles');
+
+var server = ldap.createServer();
+
+function authenticateDN(username, password){
+  var client = ldap.createClient({
+    url: 'ldap://23.229.11.150'
+  });
+  client.bind(username, password, function(err) {
+    if(err){
+      console.log("Error in connecting to LDAP",err)
+    } else {
+      console.log("Sucessfully connected to LDAP")
+    }
+  });
+}
+
+// authenticateDN('cn=Administrator,ou=system', 'RomeoJuliet$891');
+
 
 var camundaEngineUrl = 'http://localhost:8081/rest/'; // default if not overwritten by ENV variable
 var targetPort = '8090'; //default if not overwritten by ENV
@@ -139,13 +158,17 @@ function complete(taskId, approved) {
 }
 
 // Auto-Deploy on startup
-deployProcess();
+// deployProcess();
 
 
 // Webserver to provide REST API to start workflow instances
 var app = express();
 app.use(cors())
 app.use(express.json());
+
+app.post('/user', function (req,res) {
+  res.json(req.body)
+})
 
 app.post('/article', function (req, res) {
   request(
