@@ -66,7 +66,7 @@ router.post('/search', function searchUser(req, res) {
 })
 
 /*use this to add user*/
-function addUser() {
+router.post('/add', function addUser(req, res) {
     var entry = {
         sn: 'bar',
         // email: ['foo@bar.com', 'foo1@bar.com'],
@@ -79,10 +79,10 @@ function addUser() {
             console.log("added user")
         }
     });
-}
+})
 
 /*use this to delete user*/
-function deleteUser() {
+router.post('/delete', function deleteUser(req, res) {
     client.del('cn=foo12,ou=users,ou=system', function (err) {
         if (err) {
             console.log("err in delete new user " + err);
@@ -90,10 +90,10 @@ function deleteUser() {
             console.log("deleted user")
         }
     });
-}
+})
 
 /*use this to add user to group*/
-function addUserToGroup(groupname) {
+router.post('/addToGroup', function addUserToGroup(req, res) {
     var change = new ldap.Change({
         operation: 'add',
         modification: {
@@ -101,17 +101,17 @@ function addUserToGroup(groupname) {
         }
     });
 
-    client.modify(groupname, change, function (err) {
+    client.modify(req.body.groupname, change, function (err) {
         if (err) {
             console.log("err in add user in a group " + err);
         } else {
             console.log("added user in a group")
         }
     });
-}
+})
 
 /*use this to delete user from group*/
-function deleteUserFromGroup(groupname) {
+router.post('/deleteFromGroup', function deleteUserFromGroup(req, res) {
     var change = new ldap.Change({
         operation: 'delete',
         modification: {
@@ -119,17 +119,17 @@ function deleteUserFromGroup(groupname) {
         }
     });
 
-    client.modify(groupname, change, function (err) {
+    client.modify(req.body.groupname, change, function (err) {
         if (err) {
             console.log("err in delete  user in a group " + err);
         } else {
             console.log("deleted  user from a group")
         }
     });
-}
+})
 
 /*use this to update user attributes*/
-function updateUser(dn) {
+router.post('/update', function updateUser(req, res) {
     var change = new ldap.Change({
         operation: 'add',  //use add to add new attribute
         //operation: 'replace', // use replace to update the existing attribute
@@ -138,37 +138,37 @@ function updateUser(dn) {
         }
     });
 
-    client.modify(dn, change, function (err) {
+    client.modify(req.body.dn, change, function (err) {
         if (err) {
             console.log("err in update user " + err);
         } else {
             console.log("add update user");
         }
     });
-}
+})
 
 /*use this to compare user is already existed or not*/
-function compare(dn) {
-    client.compare(dn, 'sn', '1263', function (err, matched) {
+router.post('/compare', function compare(req, res) {
+    client.compare(req.bodydn, 'sn', '1263', function (err, matched) {
         if (err) {
             console.log("err in update user " + err);
         } else {
             console.log("result :" + matched);
         }
     });
-}
+})
 
 /*use this to modify the dn of existing user*/
-function modifyDN(dn) {
+router.post('/modify', function modifyDN(req, res) {
 
-    client.modifyDN(dn, 'cn=ba4r', function (err) {
+    client.modifyDN(req.body.dn, 'cn=ba4r', function (err) {
         if (err) {
             console.log("err in update user " + err);
         } else {
             console.log("result :");
         }
     });
-}
+})
 
 /*create authentication*/
 // authenticateDN("uid=admin,ou=system", "secret")
