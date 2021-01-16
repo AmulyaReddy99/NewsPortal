@@ -6,24 +6,11 @@ const express = require('express');
 const cors = require('cors');
 const ldap = require('ldapjs');
 const Articles = require('./models/Articles');
-const articles = require('./models/Articles');
+const userAuth = require('./routes/userAuth')
 
-var server = ldap.createServer();
+// var server = ldap.createServer();
 
-function authenticateDN(username, password){
-  var client = ldap.createClient({
-    url: 'ldap://23.229.11.150'
-  });
-  client.bind(username, password, function(err) {
-    if(err){
-      console.log("Error in connecting to LDAP",err)
-    } else {
-      console.log("Sucessfully connected to LDAP")
-    }
-  });
-}
-
-// authenticateDN('cn=Administrator,ou=system', 'RomeoJuliet$891');
+userAuth.authenticateDN('uid=admin,ou=system', 'secret');
 
 
 var camundaEngineUrl = 'http://localhost:8081/rest/'; // default if not overwritten by ENV variable
