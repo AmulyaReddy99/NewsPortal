@@ -1,6 +1,7 @@
 var express = require('express');
-var app = express();
+var router = express.Router();
 var ldap = require('ldapjs');
+const Constants = require('../Constants');
 
 // app.listen(3000, function () {
 //     console.log("server started")
@@ -8,7 +9,7 @@ var ldap = require('ldapjs');
 
 /*update the url according to your ldap address*/
 var client = ldap.createClient({
-    url: 'ldap://127.0.0.1:10389'
+    url: Constants.LDAP_URL
 });
 
 /*use this to create connection*/
@@ -22,9 +23,8 @@ function authenticateDN(username, password) {
             /*if connection is success then go for any operation*/
             console.log("Success, connected to LDAP");
             //searchUser();
-            addUser();
-            addUser();
-            deleteUser();
+            // addUser();
+            // deleteUser();
             //addUserToGroup('cn=Administrators,ou=groups,ou=system');
             //deleteUserFromGroup('cn=Administrators,ou=groups,ou=system');
             //updateUser('cn=test,ou=users,ou=system');
@@ -36,7 +36,7 @@ function authenticateDN(username, password) {
 }
 
 /*use this to search user, add your condition inside filter*/
-function searchUser() {
+router.post('/search', function searchUser(req, res) {
     var opts = {
         //  filter: '(objectClass=*)',  //simple search
         //  filter: '(&(uid=2)(sn=John))',// and search
@@ -63,7 +63,7 @@ function searchUser() {
             });
         }
     });
-}
+})
 
 /*use this to add user*/
 function addUser() {
@@ -173,4 +173,7 @@ function modifyDN(dn) {
 /*create authentication*/
 // authenticateDN("uid=admin,ou=system", "secret")
 
-module.exports.authenticateDN = authenticateDN;
+module.exports = {
+    authenticateDN : authenticateDN,
+    router: router
+}
