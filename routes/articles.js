@@ -64,7 +64,7 @@ function deployProcess() {
 }
 
 // Auto-Deploy on startup
-deployProcess();
+// deployProcess();
 
 // Start workflow instance: https://docs.camunda.org/manual/latest/reference/rest/process-definition/post-start-process-instance/
 function startProcess(article) {
@@ -203,39 +203,134 @@ router.post('/complete', function (req, res) {
   
 
 router.post('/article', function (req, res) {
-    request(
-      {
-        method: "POST", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
-        uri: camundaEngineUrl + 'engine/default/process-definition/key/'+'NewsReviewFlow'+'/start',
-        json: {
-          "variables": {
-            "users": {
-            "value": "editor1,editor2,editor3",
-              "type": "String"
-            },
-            "noOfUsers": {
-              "value": 3,
-              "type": "Integer"
-            },
-            "userIndex": {
-              "value": 0,
-              "type": "Integer"
-            },
-            "article": {
-              "value": req.body.article,
-              "type": "String"
-            } 
-        }
+  request(
+    {
+      method: "POST", // see https://docs.camunda.org/manual/latest/reference/rest/deployment/post-deployment/
+      uri: camundaEngineUrl + 'engine/default/process-definition/key/'+'NewsReviewFlow'+'/start',
+      json: {
+        "variables": {
+          "users": {
+          "value": "editor1,editor2,editor3",
+            "type": "String"
+          },
+          "noOfUsers": {
+            "value": 3,
+            "type": "Integer"
+          },
+          "userIndex": {
+            "value": 0,
+            "type": "Integer"
+          },
+          "article": {
+            "value": req.body.article,
+            "type": "String"
+          } 
       }
-    }, function (err, response, body) {
-        if (err) {
-          console.log(err);
-          throw err;
+    }
+  }, function (err, response, body) {
+      if (err) {
+        console.log(err);
+        throw err;
+      }
+      console.log(body);
+      processInstanceId = body.id
+      res.send(body);
+  });
+})
+
+const util = require("util");
+const multer = require("multer");
+const GridFsStorage = require("multer-gridfs-storage");
+const Grid = require("gridfs-stream");
+const mongoose = require('mongoose');
+
+const mongoURI = 'mongodb://localhost:27017/files_db';
+const conn = mongoose.createConnection(mongoURI, {useNewUrlParser: true, useUnifiedTopology: true});
+let gfs;
+conn.once('open', () => {
+  // Init stream
+  gfs = Grid(conn.db, mongoose.mongo);
+  gfs.collection('photos');
+  console.log("connected gfs")
+});
+
+router.get('/getImage/:filename', function (req, res) {
+  gfs.files.findOne({ filename: req.params.filename }, (err, file) => {
+    // Check if file
+    if (!file || file.length === 0) {
+      return res.status(404).json({
+        err: 'No file exists'
+      });
+    }
+        // Check if image
+        if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
+          // Read output to browser
+          const readstream = gfs.createReadStream(file.filename);
+          readstream.pipe(res);
+        } else {
+          res.status(404).json({
+            err: 'Not an image'
+          });
         }
-        console.log(body);
-        processInstanceId = body.id
-        res.send(body);
-    });
-  })
+  });
+})
+
+
+var storage = new GridFsStorage({
+  url: "mongodb://localhost:27017/files_db",
+  options: { useNewUrlParser: true, useUnifiedTopology: true },
+  file: (req, file) => {
+    const match = ["image/png", "image/jpeg"];
+
+    if (match.indexOf(file.mimetype) === -1) {
+      const filename = `${Date.now()}-file-${file.originalname}`;
+      return filename;
+    }
+
+    return {
+      bucketName: "photos",
+      filename: `${Date.now()}-file-${file.originalname}`
+    };
+  }
+});
+
+var uploadFile = multer({ storage: storage }).single("file");
+var uploadFilesMiddleware = util.promisify(uploadFile);
+
+const uploadFileFunc = async (req, res) => {
+  try {
+    await uploadFilesMiddleware(req, res);
+
+    console.log(req.file);
+    if (req.file == undefined) {
+      return res.send(`You must select a file.`);
+    }
+
+    return res.send(`File has been uploaded.`);
+  } catch (error) {
+    console.log(error);
+    return res.send(`Error when trying upload image: ${error}`);
+  }
+};
+
+router.post('/addVideo', function (req, res) {
+
+})
+
+router.post('/addImage', function (req, res) {
+  uploadFileFunc(req, res)
+})
+
+router.post('/addAudio', function (req, res) {
+  
+})
+
+router.post('/getVideo', function (req, res) {
+
+})
+
+router.post('/getAudio', function (req, res) {
+  
+})
 
 module.exports = router;
